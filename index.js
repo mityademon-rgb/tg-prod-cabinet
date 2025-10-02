@@ -21,43 +21,104 @@ app.get("/", (_req, res) => res.send("Сервер жив ✅"));
 app.get("/health", (_req, res) => res.json({ ok: true, t: Date.now() }));
 // страница "Кабинет" по адресу /app
 app.get("/app", (_req, res) => {
-  res.send(`<!doctype html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  res.send(<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Кабинет клиента</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  :root{--brand:#f37021;--bg:#0f1115;--card:#161a22;--text:#e9edf3;--muted:#aab3c2}
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);
-  font:16px/1.5 Montserrat,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  .wrap{max-width:900px;margin:0 auto;padding:24px}
-  h1{margin:0 0 16px}
-  .card{background:var(--card);border:1px solid rgba(255,255,255,.08);
-    border-radius:16px;padding:16px;margin:12px 0}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .badge{display:inline-block;padding:4px 10px;border-radius:999px;
-    background:rgba(243,112,33,.18);color:var(--brand);font-weight:700}
-  .btn{display:inline-block;background:var(--brand);color:#fff;text-decoration:none;
-    border-radius:12px;padding:10px 14px;font-weight:700;margin-top:8px}
-  small{color:var(--muted)}
+  :root{
+    --bg:#0f1115; --text:#e9edf3; --muted:#aab3c2; --card:#161a22; --brand:#f37021; --ok:#21c97a; --line:rgba(255,255,255,.08)
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--text);font:15px/1.5 system-ui,Segoe UI,Roboto,Arial}
+  .wrap{max-width:920px;margin:0 auto;padding:16px 16px 28px}
+  h1{margin:0 0 10px;font-size:22px}
+  .muted{color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:6px 10px;border-radius:999px;background:#0f1219;border:1px solid var(--line)}
+  .chip.ok{background:rgba(33,201,122,.15);border-color:rgba(33,201,122,.35)}
+  .btn{display:inline-block;background:var(--brand);color:#fff;text-decoration:none;border-radius:12px;padding:12px 16px;font-weight:700}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  .grid{display:grid;gap:12px}
+  @media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Кабинет клиента</h1>
-    <div class="card">
-      <h3>Мой проект</h3>
-      <div class="row">
-        <span class="badge">ТЗ</span>
-        <span class="badge">Идеи</span>
-        <span class="badge">Сценарий</span>
-        <span class="badge">Черновик</span>
-        <span class="badge">Финал</span>
+    <div class="muted" id="hello">Здравствуйте!</div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Шаги проекта</h3>
+        <div class="row" id="steps">
+          <span class="chip"   id="s1">Бриф</span>
+          <span class="chip"   id="s2">Смета</span>
+          <span class="chip"   id="s3">Концепции</span>
+          <span class="chip"   id="s4">Продакшн</span>
+          <span class="chip"   id="s5">Черновик</span>
+          <span class="chip"   id="s6">Финал</span>
+        </div>
+        <p class="muted" id="status">Статус: жду бриф 📄</p>
       </div>
-      <a class="btn" href="#">Заполнить ТЗ (скоро)</a>
-      <p><small>Это MVP-страница. Позже подменим на полноценный интерфейс.</small></p>
+
+      <div class="card">
+        <h3>Действия</h3>
+        <p class="row">
+          <a class="btn" href="/brief-template.docx">Скачать бриф (DOCX)</a>
+          <button class="btn ghost" onclick="openChat()">Задать вопрос</button>
+        </p>
+        <p class="muted">Заполните файл и пришлите его обратно в чат боту.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Мои материалы</h3>
+      <p class="muted">Здесь появятся смета, концепции и ссылки на ролики, когда менеджер их опубликует.</p>
+      <div id="materials"></div>
     </div>
   </div>
-</body></html>`);
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.expand();
+    const tp = tg.themeParams || {};
+    // Нежно подхватываем тему Телеги
+    const map = {
+      '--bg': tp.bg_color,
+      '--text': tp.text_color,
+      '--muted': tp.hint_color,
+      '--card': tp.secondary_bg_color,
+      '--brand': tp.button_color
+    };
+    for (const k in map) if (map[k]) document.documentElement.style.setProperty(k, map[k]);
+    const u = tg.initDataUnsafe?.user;
+    if (u?.first_name) document.getElementById('hello').textContent = `Здравствуйте, ${u.first_name}!`;
+  }
+  function openChat(){ tg ? tg.close() : (location.href='https://t.me') }
+
+  // Временный демо-статус (позже тут будет запрос к API)
+  const STAGE_TEXT = {
+    waiting_brief: "Жду бриф 📄",
+    brief_received: "Бриф получен ✅. Считаем смету 💰",
+    estimate_ready: "Смета готова 💼",
+    estimate_approved: "Смета утверждена ✅",
+    concepts_ready: "Концепции готовы 🎬"
+  };
+  // По умолчанию — «жду бриф»
+  let stage = 'waiting_brief';
+  document.getElementById('status').textContent = "Статус: " + STAGE_TEXT[stage];
+  document.getElementById('s1').classList.add('ok'); // подсветим первый шаг
+</script>
+</body>
+</html>
+);
 });
 // страница БРИФА (GET /brief)
 app.get("/brief", (_req, res) => {
