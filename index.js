@@ -119,6 +119,8 @@ bot.command("menu", async (ctx) => {
 bot.command("brief", (ctx) =>
   ctx.reply("Бриф: https://tg-prod-cabinet-production.up.railway.app/brief")
 );
+// покажу твой chat_id, чтобы настроить уведомления
+bot.command("myid", (ctx) => ctx.reply(`Ваш chat_id: ${ctx.chat.id}`));
 
 // запускаем поллинг бота
 bot.start();
