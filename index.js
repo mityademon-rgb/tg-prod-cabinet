@@ -140,6 +140,17 @@ bot.command("brief", (ctx) =>
 );
 // покажу твой chat_id, чтобы настроить уведомления
 bot.command("myid", (ctx) => ctx.reply(`Ваш chat_id: ${ctx.chat.id}`));
+// /notifytest — проверка, что бот может писать менеджеру
+bot.command("notifytest", async (ctx) => {
+  try {
+    await bot.api.sendMessage(Number(process.env.MANAGER_CHAT_ID || 0),
+      `Тест-уведомление ✅ от ${ctx.from.id}`);
+    await ctx.reply("Отправил уведомление менеджеру ✅");
+  } catch (e) {
+    await ctx.reply("Не смог отправить уведомление: " + e.message);
+    console.error("notifytest error:", e);
+  }
+});
 
 // запускаем поллинг бота
 bot.start();
