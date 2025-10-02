@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import { Bot, Keyboard } from "grammy";
+import { Bot, Keyboard, InlineKeyboard } from "grammy";
+
 
 const PORT = process.env.PORT || 3000;
 const token = process.env.TELEGRAM_TOKEN;
@@ -246,6 +247,14 @@ bot.command("menu", async (ctx) => {
     .webApp("Открыть кабинет", "https://tg-prod-cabinet-production.up.railway.app/app")
     .resized();
   await ctx.reply("Меню:", { reply_markup: kb });
+});
+// /menu2 — inline-кнопка, WebApp открывается внутри Телеграма (надёжнее)
+bot.command("menu2", async (ctx) => {
+  const kb = new InlineKeyboard().webApp(
+    "Открыть кабинет",
+    "https://tg-prod-cabinet-production.up.railway.app/app"
+  );
+  await ctx.reply("Меню (inline):", { reply_markup: kb });
 });
 
 // запускаем поллинг бота
