@@ -179,6 +179,13 @@ bot.hears(/^\/notifytest\b/i, async (ctx) => {
     console.error("notifytest-hears error:", e);
   }
 });
+// /menu — открывает кабинет как WebApp прямо в Telegram
+bot.command("menu", async (ctx) => {
+  const kb = new Keyboard()
+    .webApp("Открыть кабинет", "https://tg-prod-cabinet-production.up.railway.app/app")
+    .resized();
+  await ctx.reply("Меню:", { reply_markup: kb });
+});
 
 // запускаем поллинг бота
 bot.start();
