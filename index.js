@@ -78,8 +78,27 @@ app.get("/brief", (_req, res) => {
 });
 
 // приём формы (POST /brief)
-app.post("/brief", (req, res) => {
-  console.log("📝 Новый бриф:", req.body); // позже отправим менеджеру в ТГ/сохраним в БД
+app.post("/brief", async (req, res) => {
+  console.log("📝 Новый бриф:", req.body); 
+   // уведомление менеджеру в Telegram (если указан chat_id)
+  const managerId = process.env.MANAGER_CHAT_ID;
+  if (managerId) {
+    const b = req.body || {};
+    const msg =
+      `<b>Новый бриф</b>\n` +
+      `Компания: ${b.company || "-"}\n` +
+      `Цель: ${b.goal || "-"}\n` +
+      `ЦА: ${b.audience || "-"}\n` +
+      `Рефы: ${b.refs || "-"}\n` +
+      `Контакт: ${b.contact || "-"}; ${b.contact_way || "-"}`;
+
+    try {
+      await bot.api.sendMessage(Number(managerId), msg, { parse_mode: "HTML" });
+    } catch (e) {
+      console.error("❌ Не удалось отправить уведомление менеджеру:", e.message);
+    }
+  }
+
   res.send(`<!doctype html><meta charset="utf-8">
   <body style="font:16px system-ui;max-width:760px;margin:40px auto">
     <h1>Спасибо! Бриф получен ✅</h1>
