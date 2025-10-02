@@ -151,6 +151,34 @@ bot.command("notifytest", async (ctx) => {
     console.error("notifytest error:", e);
   }
 });
+// /notifytest — гарантированный тест уведомлений менеджеру
+bot.command("notifytest", async (ctx) => {
+  console.log("🔔 /notifytest from", ctx.from.id);
+  try {
+    await ctx.reply("Команда принята, шлём уведомление…");
+    await bot.api.sendMessage(
+      Number(process.env.MANAGER_CHAT_ID || 0),
+      `Тест-уведомление ✅ от ${ctx.from.id}`
+    );
+  } catch (e) {
+    console.error("notifytest error:", e);
+    await ctx.reply("Не получилось отправить уведомление: " + e.message);
+  }
+});
+
+// Подстраховка: если по какой-то причине .command не срабатывает
+bot.hears(/^\/notifytest\b/i, async (ctx) => {
+  console.log("🔔 hears /notifytest from", ctx.from.id);
+  try {
+    await ctx.reply("Команда принята (hears), шлём уведомление…");
+    await bot.api.sendMessage(
+      Number(process.env.MANAGER_CHAT_ID || 0),
+      `Тест-уведомление ✅ (hears) от ${ctx.from.id}`
+    );
+  } catch (e) {
+    console.error("notifytest-hears error:", e);
+  }
+});
 
 // запускаем поллинг бота
 bot.start();
